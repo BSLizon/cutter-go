@@ -8,6 +8,7 @@ import (
 )
 
 func Test_LengthBasedCutter(t *testing.T) {
+	//TODO::full test example
 	in := bytes.NewBuffer([]byte{})
 	lengthBuf := []byte{0x00, 0x00, 0x00, 0x00}
 	binary.BigEndian.PutUint32(lengthBuf, uint32(5))
@@ -38,6 +39,8 @@ Here1:
 			t.Error("test failed.")
 		}
 	}
+
+	//TODO::full test example
 
 	err = LengthBasedCutter(in, uint32(1<<10), out)
 	if err != nil {
