@@ -12,7 +12,7 @@ const (
 )
 
 func LengthBasedCutter(r io.Reader, payloadMaxLength uint32, payload []byte) error {
-	//TODO::check len(payload) or cap(payload)
+	//TODO::check payloadMaxLength len(payload) or cap(payload)
 
 	if payloadMaxLength > MAX_PAYLOAD_SIZE {
 		return errors.New("out of payloadMaxLength limit")
@@ -43,7 +43,9 @@ func LengthBasedCutter(r io.Reader, payloadMaxLength uint32, payload []byte) err
 	} else if length == 0 {
 		return errors.New("payload length equals 0")
 	}
-
+	
+	//TODO::compare length, len(payload) or cap(payload)
+	
 	//read payload
 	var payloadBufIdx uint32
 	for {
@@ -55,7 +57,7 @@ func LengthBasedCutter(r io.Reader, payloadMaxLength uint32, payload []byte) err
 			return err
 		}
 
-		//TODO::check len(payload) or cap(payload)
+		//TODO::check n == 0
 
 		payloadBufIdx += uint32(n)
 
