@@ -5,6 +5,7 @@ import (
 	"encoding/binary"
 	"io"
 	"testing"
+	"time"
 )
 
 func Test_LengthBasedCutter(t *testing.T) {
@@ -20,28 +21,31 @@ func Test_LengthBasedCutter(t *testing.T) {
 	in.Write(lengthBuf)
 
 	out := []byte{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}
-	_, err := LengthBasedCutter(in, out)
+	t1 := time.Now().UnixNano()
+	n, err := LengthBasedCutter(in, out)
+	t.Log(time.Now().UnixNano(), t1)
 	if err != nil {
 		if err == io.EOF {
 			goto Here1
 		}
-		t.Error("test failed.", err)
+		t.Fatal("test failed.", err)
 	}
 
 Here1:
+	out = out[0:n]
 	if payload == nil || out == nil {
-		t.Error("test failed.")
+		t.Fatal("test failed.")
 	}
 
 	t.Log(payload, out)
 
 	if len(payload) != len(out) {
-		t.Error("test failed.")
+		t.Fatal("test failed.")
 	}
 
 	for i := range payload {
 		if payload[i] != out[i] {
-			t.Error("test failed.")
+			t.Fatal("test failed.")
 		}
 	}
 
@@ -52,21 +56,21 @@ Here1:
 		if err == io.EOF {
 			goto Here2
 		}
-		t.Error("test failed.", err)
+		t.Fatal("test failed.", err)
 	}
 
 Here2:
 	if payload == nil || out == nil {
-		t.Error("test failed.")
+		t.Fatal("test failed.")
 	}
 
 	if len(payload) != len(out) {
-		t.Error("test failed.")
+		t.Fatal("test failed.")
 	}
 
 	for i := range payload {
 		if payload[i] != out[i] {
-			t.Error("test failed.")
+			t.Fatal("test failed.")
 		}
 	}
 }

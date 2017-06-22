@@ -38,15 +38,15 @@ func LengthBasedCutter(r io.Reader, payload []byte) (uint32, error) {
 
 	length := binary.BigEndian.Uint32(lenBuf)
 	if length > uint32(maxlength) {
-		return 0, errors.New("payload length out of limit")
+		return 0, errors.New("receive length out of len([]byte)")
 	} else if length == 0 {
-		return 0, errors.New("payload length equals 0")
+		return 0, errors.New("receive length equals 0")
 	}
 
 	//read payload
 	var payloadBufIdx uint32
 	for {
-		n, err := r.Read(payload[payloadBufIdx:])
+		n, err := r.Read(payload[payloadBufIdx:length])
 		if err != nil {
 			if err == io.EOF {
 				return 0, io.EOF
