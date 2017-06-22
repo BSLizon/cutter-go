@@ -15,9 +15,12 @@ func Test_LengthBasedCutter(t *testing.T) {
 	in.Write(lengthBuf)
 	payload := []byte{0x00, 0x01, 0x10, 0x11, 0x19}
 	in.Write(payload)
+	in.Write(lengthBuf)
+	in.Write(payload)
+	in.Write(lengthBuf)
 
-	out := []byte{0x00, 0x00, 0x00, 0x00, 0x00}
-	err := LengthBasedCutter(in, uint32(1<<10), out)
+	out := []byte{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}
+	_, err := LengthBasedCutter(in, out)
 	if err != nil {
 		if err == io.EOF {
 			goto Here1
@@ -29,6 +32,8 @@ Here1:
 	if payload == nil || out == nil {
 		t.Error("test failed.")
 	}
+
+	t.Log(payload, out)
 
 	if len(payload) != len(out) {
 		t.Error("test failed.")
@@ -42,7 +47,7 @@ Here1:
 
 	//TODO::full test example
 
-	err = LengthBasedCutter(in, uint32(1<<10), out)
+	_, err = LengthBasedCutter(in, out)
 	if err != nil {
 		if err == io.EOF {
 			goto Here2
