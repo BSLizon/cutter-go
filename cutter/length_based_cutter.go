@@ -7,8 +7,9 @@ import (
 )
 
 const (
-	PAYLOAD_LENGTH_SIZE = 4       /*len(uint32)*/
-	MAX_PAYLOAD_SIZE    = 1 << 20 /*1MB*/
+	PAYLOAD_LENGTH_SIZE  = 4       /*len(uint32)*/
+	MAX_PAYLOAD_SIZE     = 1 << 20 /*1MB*/
+	MAX_READ_RETRY_COUNT = 3
 )
 
 func LengthBasedCutter(r io.Reader, payload []byte) (uint32, error) {
@@ -16,6 +17,8 @@ func LengthBasedCutter(r io.Reader, payload []byte) (uint32, error) {
 	if maxlength > MAX_PAYLOAD_SIZE {
 		return 0, errors.New("out of MAX_PAYLOAD_SIZE limit")
 	}
+
+	readRetryCount := 0
 
 	//read length
 	lenBuf := make([]byte, PAYLOAD_LENGTH_SIZE)
@@ -28,11 +31,22 @@ func LengthBasedCutter(r io.Reader, payload []byte) (uint32, error) {
 			}
 			return 0, err
 		}
-		lengthBufIdx += n
-		if lengthBufIdx == PAYLOAD_LENGTH_SIZE {
-			break
-		} else if lengthBufIdx > PAYLOAD_LENGTH_SIZE || lengthBufIdx < 0 {
-			return 0, errors.New("read payload length error")
+
+		if n == 0 {
+			if readRetryCount >= MAX_READ_RETRY_COUNT-1 {
+				return 0, errors.New("max read retry count")
+			} else {
+				readRetryCount++
+			}
+		} else {
+			readRetryCount = 0
+
+			lengthBufIdx += n
+			if lengthBufIdx == PAYLOAD_LENGTH_SIZE {
+				break
+			} else if lengthBufIdx > PAYLOAD_LENGTH_SIZE || lengthBufIdx < 0 {
+				return 0, errors.New("read payload length error")
+			}
 		}
 	}
 
@@ -54,14 +68,22 @@ func LengthBasedCutter(r io.Reader, payload []byte) (uint32, error) {
 			return 0, err
 		}
 
-		//TODO::check n == 0
+		if n == 0 {
+			if readRetryCount >= MAX_READ_RETRY_COUNT-1 {
+				return 0, errors.New("max read retry count")
+			} else {
+				readRetryCount++
+			}
+		} else {
+			readRetryCount = 0
 
-		payloadBufIdx += uint32(n)
-
-		if payloadBufIdx == length {
-			return length, nil
-		} else if payloadBufIdx > length || payloadBufIdx < 0 {
-			return 0, errors.New("read payload error")
+			payloadBufIdx += uint32(n)
+			if payloadBufIdx == length {
+				return length, nil
+			} else if payloadBufIdx > length || payloadBufIdx < 0 {
+				return 0, errors.New("read payload error")
+			}
 		}
+
 	}
 }
