@@ -7,9 +7,8 @@ import (
 )
 
 const (
-	PAYLOAD_LENGTH_SIZE  = 4       /*len(uint32)*/
-	MAX_PAYLOAD_SIZE     = 1 << 20 /*1MB*/
-	MAX_READ_RETRY_COUNT = 3
+	PAYLOAD_LENGTH_SIZE = 4       /*len(uint32)*/
+	MAX_PAYLOAD_SIZE    = 1 << 20 /*1MB*/
 )
 
 func LengthBasedCutter(r io.Reader, payload []byte) (uint32, error) {
@@ -17,8 +16,6 @@ func LengthBasedCutter(r io.Reader, payload []byte) (uint32, error) {
 	if maxlength > MAX_PAYLOAD_SIZE {
 		return 0, errors.New("out of MAX_PAYLOAD_SIZE limit")
 	}
-
-	readRetryCount := 0
 
 	//read length
 	lenBuf := make([]byte, PAYLOAD_LENGTH_SIZE)
@@ -31,22 +28,11 @@ func LengthBasedCutter(r io.Reader, payload []byte) (uint32, error) {
 			}
 			return 0, err
 		}
-
-		if n == 0 {
-			if readRetryCount >= MAX_READ_RETRY_COUNT-1 {
-				return 0, errors.New("max read retry count")
-			} else {
-				readRetryCount++
-			}
-		} else {
-			readRetryCount = 0
-
-			lengthBufIdx += n
-			if lengthBufIdx == PAYLOAD_LENGTH_SIZE {
-				break
-			} else if lengthBufIdx > PAYLOAD_LENGTH_SIZE || lengthBufIdx < 0 {
-				return 0, errors.New("read payload length error")
-			}
+		lengthBufIdx += n
+		if lengthBufIdx == PAYLOAD_LENGTH_SIZE {
+			break
+		} else if lengthBufIdx > PAYLOAD_LENGTH_SIZE || lengthBufIdx < 0 {
+			return 0, errors.New("read payload length error")
 		}
 	}
 
@@ -68,22 +54,14 @@ func LengthBasedCutter(r io.Reader, payload []byte) (uint32, error) {
 			return 0, err
 		}
 
-		if n == 0 {
-			if readRetryCount >= MAX_READ_RETRY_COUNT-1 {
-				return 0, errors.New("max read retry count")
-			} else {
-				readRetryCount++
-			}
-		} else {
-			readRetryCount = 0
+		//TODO::check n == 0
 
-			payloadBufIdx += uint32(n)
-			if payloadBufIdx == length {
-				return length, nil
-			} else if payloadBufIdx > length || payloadBufIdx < 0 {
-				return 0, errors.New("read payload error")
-			}
+		payloadBufIdx += uint32(n)
+
+		if payloadBufIdx == length {
+			return length, nil
+		} else if payloadBufIdx > length || payloadBufIdx < 0 {
+			return 0, errors.New("read payload error")
 		}
-
 	}
 }
