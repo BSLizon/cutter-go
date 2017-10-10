@@ -8,14 +8,14 @@ import (
 
 const (
 	PAYLOAD_LENGTH_SIZE  = 4       /*len(uint32)*/
-	MAX_PAYLOAD_SIZE     = 1 << 20 /*1MB*/
+	MAX_PAYLOAD_SIZE     = 1 << 14 /*16KB*/
 	MAX_READ_RETRY_COUNT = 3
 )
 
 func LengthBasedCutter(r io.Reader, payload []byte) (uint32, error) {
 	maxlength := len(payload)
-	if maxlength > MAX_PAYLOAD_SIZE {
-		return 0, errors.New("out of MAX_PAYLOAD_SIZE limit")
+	if maxlength < MAX_PAYLOAD_SIZE {
+		return 0, errors.New("less than MAX_PAYLOAD_SIZE limit")
 	}
 
 	readRetryCount := 0
